@@ -8,108 +8,123 @@ namespace ProjectPartA1
         {
             public string Name;
             public decimal Price;
-
         }
-        const decimal VAT = 0.25M;
-        const int MaxArticals = 10;
+        const int maxArticles = 10;
+        const decimal _vat = 0.25M;
 
-        static Article[] articles = new Article[MaxArticals];
-        static int nrArticles;
+        static Article[] articles = new Article[maxArticles];
+        static int inputArticles; //needs to be static so can use in main
+
         static void Main(string[] args)
         {
+
+            Console.WriteLine("Welcome to Project Part A");
+            Console.WriteLine("Let's print a receipt");
+
+            TryReadArticles(out inputArticles);
+
+            ReadArticles();
+            PrintReciept();
+
+            bool ErrorHandling = TryReadArticles(out inputArticles);
+
+        }
+
+        private static void ReadArticles()
+        {
+            string[] UserInput; //Save the users input in a string
+            int item = 0; 
+            Article article = new Article();
+            while (item < inputArticles)
             {
-                ReadArticles();
-                PrintReciept(articles); // create a constructor to save and print out
-            }
-
-            static void ReadArticles()
-
-            {
-                Console.WriteLine("Welcome to project part A!");
-                Console.WriteLine("Let´s print a recipt!");
-                Console.WriteLine();
-                Console.WriteLine("How many articals do you want (between 1 to 10)?"); //Ask how many articels user want
-
                 try
-
                 {
+                    Console.WriteLine($"\nPlease enter name and price for article #{item + 1} in format Banana; 7,50");
+                    UserInput = Console.ReadLine().Split(";"); //Split the input with name;price
 
-                    nrArticles = Convert.ToInt32(Console.ReadLine()); // convert the  useres input string to a number
-                    if (nrArticles <= MaxArticals && nrArticles >= 1) //User can put max 10 artical minimun or same as one 
+
+                    if (!string.IsNullOrEmpty(UserInput[0]) || !string.IsNullOrWhiteSpace(UserInput[0]))
+
                     {
-                        Console.WriteLine($"You want to write in {nrArticles}  articles");//print out how many articels the user put in
-                        for (int i = 0; i < nrArticles; i++) // as many times as the user wants articals...
-                        {
-                            //ask the user for name and price
-                            int iteam = i;
-                            Console.WriteLine($"Please enter a name and price for article #{iteam + 1} in format name; price"); //+1 to make it start on 1
-                            var NamePrice = Console.ReadLine().Split(';'); //(var is a string array)split the name; price and save valu in the string
-                            decimal price;                                         // index 0 is name , price is index 1
-
-                            if (string.IsNullOrEmpty(NamePrice[0]))
-
-                            {
-                                Console.WriteLine("Wrong name!");
-                            }
-                            else if (!decimal.TryParse(NamePrice[1], out price)) //Convert my string to a decimal 
-                            {
-                                Console.WriteLine("Wrong price");
-                            }
-                            else
-                            {
-                                articles[i] = new Article
-                                {
-                                    Name = NamePrice[0],// initsierar my articel array with name
-                                    Price = price  // put my price array in price
-                                };
-
-                            }
-
-
-                        }
+                        article.Name = UserInput[0];
+                    }
+                    else
+                    {
+                        Console.WriteLine("Name error!");
+                        continue;
                     }
 
+                    bool priceformat = decimal.TryParse(UserInput[1], out decimal price); //convert the price to a decimal
+                    if (priceformat)
+                    {
+                        article.Price = price;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Price error!");
+                        continue;
+                    }
+
+                    articles[item] = article; // saves all in articles item
                 }
-                catch (Exception e)
+                catch
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine($"Wrong input, try again!");
+                    continue;
                 }
-
-
+                item++;
+                continue;
             }
-        }
-        static void PrintReciept(Article[] articles) // Need to be the same parameter as i use in the begining
-        {
-            try
-            {
 
+        }
+        private static void PrintReciept()
+        {
+            {
 
                 Console.WriteLine("Purchased Articals:\n");
                 DateTime dateTime = DateTime.Now;// Adding datetime for the day
                 Console.WriteLine(dateTime.ToString("dddd,dd MMMM yyyy HH:mm:ss") + "\n"); // Write how i want it to print out in a string
-                Console.WriteLine($" {"Name:",-50} {"Price:",-50}"); // By adding -50 i move the text to where i like it to be
+                Console.WriteLine($"{"#"} {"Name:",-50} {"Price:",-50}"); // By adding -50 i move the text to where i like it to be
                 decimal total = 0; // Making a decimal for my Totalprice
-                for (int i = 0; i < nrArticles; i++)
+                for (int i = 0; i < inputArticles; i++)
                 {
                     Console.WriteLine();
-                    Console.WriteLine($"#{i + 1} {articles[i].Name,-50} {articles[i].Price,-50:C2}"); //Make a decimal to reach all values in price (for print)
+                    Console.WriteLine($"{i + 1} {articles[i].Name,-50} {articles[i].Price,-50:C2}"); //Make a decimal to reach all values in price (for print)
 
                     total += articles[i].Price; // Put the total of the users price in articals i
                 }
-                decimal TotalVat = VAT * total; // diveded my Vat decimal whith total price
-                Console.WriteLine($"{"Total purchased",-50} {total,-54:C2}"); // use C2 to get currency
-                Console.WriteLine($"{"Includes VAT 25%",-50} {TotalVat,-54:C2}");
+                decimal TotalVat = _vat * total; // diveded my Vat decimal whith total price
+                Console.WriteLine("-------------------------------------------------------------------------");
+                Console.WriteLine($"\n{"Total purchased",-52} {total,-50:C2}"); // use C2 to get currency and 2 numers
+                Console.WriteLine($"{"Includes VAT 25%",-52} {TotalVat,-60:C2}");
 
             }
 
+        }
+        private static bool TryReadArticles(out int nrArticles)
 
-            catch (Exception e)
+        {
+            nrArticles = 0;
+            string inputArticles;
+            do
             {
-                Console.WriteLine(e.Message);
+
+                Console.WriteLine($"\nHow many articles do you want? (Between 1-10 or Q to quit)");
+                inputArticles = Console.ReadLine(); //user put in article
+
+                if (int.TryParse(inputArticles, out nrArticles) && nrArticles >= 1 && nrArticles <= maxArticles) //convert input from string to a number
+                                                                                                                 // checks the condition 
+                {
+                    return true;
+                }
+                else if (inputArticles != "Q" && inputArticles != "q")
+                {
+                    Console.WriteLine("Wrong input, please try again.");
+                }
             }
+            while ((inputArticles != "Q" && inputArticles != "q"));
+            return false;
+
         }
     }
 }
-
-
-
